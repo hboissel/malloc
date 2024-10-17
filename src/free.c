@@ -1,5 +1,4 @@
-#include "../inc/malloc.h"
-
+#include "malloc.h"
 
 // Helper function to find which zone the pointer belongs to
 int is_pointer_in_zone(MemoryZone* zone, void* ptr) {

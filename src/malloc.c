@@ -1,4 +1,4 @@
-#include "../inc/malloc.h"
+#include "malloc.h"
 
 MemoryZone* tiny_zone = NULL;
 MemoryZone* small_zone = NULL;
@@ -87,7 +87,7 @@ void* malloc(size_t size) {
     if (!size) {
         return NULL;
     }
-    
+    size = (size + 15) - (size + 15) % 16;
     if (size <= TINY_THRESHOLD) {
         // Handle TINY allocation
         return allocate_in_zone(&tiny_zone, size, TINY_ZONE_SIZE);

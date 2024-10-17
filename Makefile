@@ -1,4 +1,9 @@
-NAME = malloc
+ifeq ($(HOSTTYPE),)
+	HOSTTYPE := $(shell uname -m)_$(shell uname -s)
+endif
+
+NAME = libft_malloc_$(HOSTTYPE).so
+LIB_NAME = libft_malloc.so
 
 DBG		=	$(DBG_DIR)/$(NAME)
 
@@ -8,11 +13,10 @@ BIN_DIR =	obj
 
 DBG_DIR =	dbg
 
-SRC = $(SRC_DIR)/main.c\
-	  $(SRC_DIR)/free.c\
+SRC = $(SRC_DIR)/free.c\
 	  $(SRC_DIR)/realloc.c\
+	  $(SRC_DIR)/calloc.c\
 	  $(SRC_DIR)/show_alloc_mem.c\
-	  $(SRC_DIR)/utils.c\
 	  $(SRC_DIR)/malloc.c
 
 OBJ = $(SRC:$(SRC_DIR)/%.c=$(BIN_DIR)/%.o)
@@ -27,9 +31,13 @@ LIBFT_PATH = ./libft
 
 LIBFT = -L$(LIBFT_PATH) -lft
 
+LIBFT_MALLOC = -L. -lft_malloc
+
 INCLUDES = ./inc
 
-CFLAGS = -Werror -Wextra -Wall -I$(INCLUDES) -I$(LIBFT_PATH)
+CFLAGS = -Werror -Wextra -Wall -I$(INCLUDES) -I$(LIBFT_PATH) -fPIC
+
+LFLAGS = -shared
 
 all :	$(NAME)
 
@@ -46,12 +54,14 @@ $(OBJ) : $(BIN_DIR)/%.o: $(SRC_DIR)/%.c | $(BIN_DIR)
 
 $(DBG) : $(DBG_OBJ)
 	@ $(MAKE) -sC $(LIBFT_PATH)
-	@ $(CC) $(CFLAGS) -g3 $(DBG_OBJ) $(MLX) $(MLX_REQUIRES) $(MATH) $(LIBFT) -o $(DBG)
+	@ $(CC) $(CFLAGS) $(LFLAGS) -g3 $(DBG_OBJ) $(LIBFT) -o $(DBG)
+	@ln -sf $(DBG) $(DBG_DIR)/$(LIB_NAME)
 	@ echo "\e[33m\e[1m\tMake\e[0m [🗿] : \e[1mDone ! ✅"
 
 $(NAME) : $(OBJ)
 	@ $(MAKE) -sC $(LIBFT_PATH)
-	@ $(CC) $(CFLAGS) $(OBJ) $(MLX) $(MLX_REQUIRES) $(MATH) $(LIBFT) -o $(NAME)
+	@ $(CC) $(CFLAGS) $(LFLAGS) $(OBJ) $(LIBFT) -o $(NAME)
+	@ln -sf $(NAME) $(LIB_NAME)
 	@ echo "\e[33m\e[1m\tMake\e[0m [🗿] : \e[1mDone ! ✅"
 
 clean :
@@ -64,6 +74,7 @@ clean :
 fclean : clean
 	@ make -sC $(LIBFT_PATH) fclean
 	@ rm -f $(NAME)
+	@ rm -f $(LIB_NAME)
 	@echo "\e[33m\e[1m\tMake\e[0m [🗿] : \e[1mRemove executable .. 🗑️"
 
 re : fclean all

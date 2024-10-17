@@ -1,0 +1,13 @@
+{
+    "configurations": [
+        {
+            "name": "Linux", // or "Win32" for Windows
+            "includePath": [
+                "${workspaceFolder}/inc",     // Add this line to include the `inc` folder
+                "${workspaceFolder}/src",     // Optional, if you need to include source folder
+                "${workspaceFolder}/**"
+            ]
+        }
+    ],
+    "version": 4
+}

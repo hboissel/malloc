@@ -1,4 +1,4 @@
-#include "../inc/malloc.h"
+#include "malloc.h"
 
 // Helper function to copy memory safely
 void* memcpy_safe(void* dest, const void* src, size_t n) {

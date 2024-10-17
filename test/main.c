@@ -1,4 +1,5 @@
-#include "../inc/malloc.h"
+#include "malloc.h"
+#include <unistd.h>
 
 void test_zone_alloc(size_t size_alloc, char *zone_name) {
     // header tiny zone test with emoji

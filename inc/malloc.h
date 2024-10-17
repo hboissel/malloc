@@ -1,7 +1,7 @@
 #ifndef MALLOC_H
 #define MALLOC_H
 
-# include "libft.h"
+# include "../libft/libft.h"
 
 # include <sys/mman.h>
 
@@ -30,11 +30,10 @@ extern MemoryZone* large_allocations;
 # define BLOCK_META_SIZE sizeof(BlockMeta)
 # define MEMORY_ZONE_SIZE sizeof(MemoryZone)
 
-void print_address_hex(size_t value);
-
-void* malloc(size_t size);
-void free(void* ptr);
-void* realloc(void* ptr, size_t new_size);
-void show_alloc_mem();
+void*   malloc(size_t size);
+void    free(void* ptr);
+void*   realloc(void* ptr, size_t new_size);
+void	*calloc(size_t nmemb, size_t size);
+void    show_alloc_mem();
 
 #endif
