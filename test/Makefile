@@ -24,7 +24,7 @@ $(NAME): $(OBJS)
 
 # Rule to compile the object files
 %.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@ -I ../inc -I ../libft
+	$(CC) $(CFLAGS) -c $< -o $@ -I ../inc
 
 # Clean up object files
 clean:
