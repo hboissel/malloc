@@ -1,8 +1,7 @@
 #include "malloc.h"
 
 /// Print a address to the standard output in hexadecimal format
-/// Using write function
-void print_address_hex(size_t value) {
+static void print_address_hex(size_t value) {
     char hex[16] = "0123456789abcdef";
     char buffer[16];
     int i = 0;
@@ -16,8 +15,29 @@ void print_address_hex(size_t value) {
     }
 }
 
+/// Print a memory block in hexadecimal format
+static void print_block_hex(void *block_start, size_t size) {
+    char *ptr = (char *)block_start;
+    size_t i = 0;
+    while (i < size) {
+        if (i % 16 == 0) {
+            if (i > 0) {
+                write(1, "\n", 1);
+            }
+            print_address_hex((size_t)ptr);
+            write(1, ": ", 2);
+        }
+        write(1, " ", 1);
+        write(1, &"0123456789abcdef"[(*ptr >> 4) & 0xF], 1);
+        write(1, &"0123456789abcdef"[*ptr & 0xF], 1);
+        ptr++;
+        i++;
+    }
+    write(1, "\n", 1);
+}
+
 // Helper function to print blocks in a given zone
-void print_zone(const char *zone_name, MemoryZone *zone, size_t *total)
+static void print_zone(const char *zone_name, MemoryZone *zone, size_t *total, char dump)
 {
     while (zone)
     {
@@ -39,6 +59,7 @@ void print_zone(const char *zone_name, MemoryZone *zone, size_t *total)
             }
             else
             {
+                *total += block->size;
                 write(1, "\033[0;31m", 7);
             }
             print_address_hex((size_t)block_start);
@@ -48,34 +69,51 @@ void print_zone(const char *zone_name, MemoryZone *zone, size_t *total)
             ft_putnbr_fd(block->size, 1);
             write(1, " bytes\n", 7);
             write(1, "\033[0m", 5);
-            *total += block->size;
+            if (dump && !block->free)
+            {
+                print_block_hex(block_start, block->size);
+            }
             block = block->next;
         }
         zone = zone->next;
     }
 }
 
-// Function to display memory allocations
-void show_alloc_mem()
+static void intro_print_zone(char dump)
 {
     write(1, "--------------------------------\n", 33);
-    write(1, "🌟 Memory allocations 🌟\n", 29);
+    if (dump)
+    {
+        write(1, "🌟 Memory hexdump 🌟\n", 26);
+    }
+    else
+    {
+        write(1, "🌟 Memory allocations 🌟\n", 29);
+    }
 
     size_t total_memory = 0;
 
-    // Print TINY zone allocations
-    print_zone("TINY", tiny_zone, &total_memory);
+    print_zone("TINY", memory_zones.tiny_zone, &total_memory, dump);
 
-    // Print SMALL zone allocations
-    print_zone("SMALL", small_zone, &total_memory);
+    print_zone("SMALL", memory_zones.small_zone, &total_memory, dump);
 
-    // Print LARGE allocations
-    print_zone("LARGE", large_allocations, &total_memory);
+    print_zone("LARGE", memory_zones.large_allocations, &total_memory, dump);
 
-    // Print total memory allocated
     write(1, "Total : ", 8);
     ft_putnbr_fd(total_memory, 1);
     write(1, " bytes\n", 7);
 
     write(1, "--------------------------------\n", 33);
+}
+
+// Function to display memory allocations
+void show_alloc_mem()
+{
+    intro_print_zone(0);
+}
+
+/// Function to display a hexdump of a memory block
+void show_alloc_mem_ex()
+{
+    intro_print_zone(1);
 }

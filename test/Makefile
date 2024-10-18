@@ -9,7 +9,7 @@ OBJS = $(SRCS:.c=.o)
 
 # Compiler and flags
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror
+CFLAGS = #-Wall -Wextra -Werror
 
 # Linking options
 LDFLAGS = -L.. -Wl,-rpath=.. -lft_malloc

@@ -1,55 +1,55 @@
 #include "malloc.h"
 
-// Helper function to copy memory safely
-void* memcpy_safe(void* dest, const void* src, size_t n) {
-    char* d = dest;
-    const char* s = src;
-    while (n--) {
-        *d++ = *s++;
+/// Function that check if the pointer belongs to the zone and a block
+static int is_pointer_in_zone(MemoryZone *zone, void *ptr)
+{
+    while (zone)
+    {
+        BlockMeta *block = zone->free_list;
+        while (block)
+        {
+            void *block_content = (void *)(block + 1);
+            if (ptr == block_content)
+            {
+                return 1;
+            }
+            block = block->next;
+        }
+        zone = zone->next;
     }
-    return dest;
-}
-
-// Helper function to get the size of the allocated block
-size_t get_block_size(void* ptr) {
-    if (!ptr) return 0;
-    BlockMeta* block = (BlockMeta*)ptr - 1;
-    return block->size;
+    return 0;
 }
 
 // Realloc implementation
-void* realloc(void* ptr, size_t new_size) {
+void* realloc(void* ptr, size_t size) {
     if (!ptr) {
-        // If the pointer is NULL, realloc behaves like malloc
-        return malloc(new_size);
+        return malloc(size);
     }
-    
-    if (new_size == 0) {
-        // If the new size is 0, free the memory and return NULL
+    if (size == 0) {
         free(ptr);
         return NULL;
     }
-
-    // Get the size of the current block
+    size = ALIGN(size);
+    // Check if ptr belongs to a zone
+    if (!is_pointer_in_zone(memory_zones.tiny_zone, ptr) && !is_pointer_in_zone(memory_zones.small_zone, ptr)
+        && !is_pointer_in_zone(memory_zones.large_allocations, ptr)) {
+        return NULL;
+    }
     BlockMeta* block = (BlockMeta*)ptr - 1;
     size_t current_size = block->size;
-
-    if (new_size <= current_size) {
-        // If the new size is smaller or equal to the current block size, just return the same pointer
+    if (size == current_size) {
         return ptr;
     }
-
-    // Allocate a new block with the required size
-    void* new_ptr = malloc(new_size);
-    if (!new_ptr) {
-        return NULL; // Allocation failed
+    if (size < current_size) {
+        malloc_shrink_block(block, size);
+        return ptr;
     }
-
-    // Copy the old data to the new block (up to the current size)
-    memcpy_safe(new_ptr, ptr, current_size);
-
-    // Free the old block
+    // Allocate a new block with the required size
+    void* new_ptr = malloc(size);
+    if (!new_ptr) {
+        return NULL;
+    }
+    ft_memcpy(new_ptr, ptr, current_size);
     free(ptr);
-
     return new_ptr;
 }

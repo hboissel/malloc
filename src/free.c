@@ -1,83 +1,160 @@
 #include "malloc.h"
 
 // Helper function to find which zone the pointer belongs to
-int is_pointer_in_zone(MemoryZone* zone, void* ptr) {
-    while (zone) {
-        void* zone_start = (void*)(zone);
-        void* zone_end = (void*)((char*)zone + zone->zone_size);
-        if (ptr >= zone_start && ptr < zone_end) {
-            return 1;
+// int is_pointer_in_zone(MemoryZone *zone, void *ptr)
+// {
+//     while (zone)
+//     {
+//         void *zone_start = (void *)(zone);
+//         void *zone_end = (void *)((char *)zone + zone->zone_size);
+//         if (ptr >= zone_start && ptr < zone_end)
+//         {
+//             return 1;
+//         }
+//         zone = zone->next;
+//     }
+//     return 0;
+// }
+
+/// Function that check if the pointer belongs to the zone and a block
+static int is_pointer_in_zone(MemoryZone *zone, void *ptr)
+{
+    while (zone)
+    {
+        BlockMeta *block = zone->free_list;
+        while (block)
+        {
+            void *block_content = (void *)(block + 1);
+            if (ptr == block_content)
+            {
+                return 1;
+            }
+            block = block->next;
         }
         zone = zone->next;
     }
     return 0;
 }
 
-// Function that give back the zone to the system if all blocks are free
-void free_zone(MemoryZone** zone) {
-    if (!*zone) return;
-
-    // Check if all blocks are free
-    BlockMeta* block = (*zone)->free_list;
-    while (block) {
-        if (!block->free) {
-            return; // At least one block is in use
+static char is_free_block(BlockMeta *block)
+{
+    while (block)
+    {
+        if (!block->free)
+        {
+            return 0;
         }
         block = block->next;
     }
+    return 1;
+}
 
-    // All blocks are free, release the zone
-    munmap(zone, (*zone)->zone_size);
-    *zone = NULL;
+static void remove_one_zone(MemoryZone **zone_head, MemoryZone *zone)
+{
+    if (zone->prev)
+    {
+        zone->prev->next = zone->next;
+        if (zone->next)
+        {
+            zone->next->prev = zone->prev;
+        }
+    }
+    else
+    {
+        *zone_head = zone->next;
+        if (zone->next)
+        {
+            zone->next->prev = NULL;
+        }
+    }
+}
+
+// Function that give back the zone to the system if all blocks are free
+static void free_zone(MemoryZone **zone_head)
+{
+    if (!zone_head || !*zone_head)
+        return;
+
+    MemoryZone *zone = *zone_head;
+    MemoryZone *temp = NULL;
+
+    while (zone)
+    {
+        // Check if all blocks are free
+
+        if (!is_free_block(zone->free_list))
+        {
+            zone = zone->next;
+            continue;
+        }
+        // All blocks are free, release the zone
+        remove_one_zone(zone_head, zone);
+        temp = zone->next;
+        munmap(zone, zone->zone_size);
+        zone = temp;
+    }
 }
 
 // Merge adjacent free blocks
-void coalesce_blocks(BlockMeta* block) {
-    while (block->next && block->next->free) {
+static void coalesce_blocks(BlockMeta *block)
+{
+    // Coalesce with the previous block
+    if (block->prev && block->prev->free)
+    {
+        block->prev->size += BLOCK_META_SIZE + block->size;
+        block->prev->next = block->next;
+        if (block->next)
+        {
+            block->next->prev = block->prev;
+        }
+        block = block->prev;
+    }
+    // Coalesce with the next blocks
+    while (block->next && block->next->free)
+    {
         block->size += BLOCK_META_SIZE + block->next->size;
         block->next = block->next->next;
     }
 }
 
 // Free a block within a zone
-void free_in_zone(MemoryZone** zone, void* ptr) {
-    if (!*zone || !ptr) return;
+static void free_in_zone(MemoryZone **zone_head, void *ptr)
+{
+    if (!*zone_head || !ptr)
+        return;
 
     // Locate the block metadata (which is right before the allocated memory)
-    BlockMeta* block = (BlockMeta*)ptr - 1;
-    
-    
-    // Mark the block as free
+    BlockMeta *block = (BlockMeta *)ptr - 1;
+
     block->free = 1;
 
     // Coalesce adjacent free blocks here
     coalesce_blocks(block);
 
     // Check if the zone can be released
-    free_zone(zone);
+    free_zone(zone_head);
 }
 
 // Main free function
-void free(void* ptr) {
-    if (!ptr) {
+void free(void *ptr)
+{
+    if (!ptr)
+    {
         return;
     }
-
-    // Check if the pointer belongs to TINY zone
-    if (is_pointer_in_zone(tiny_zone, ptr)) {
-        free_in_zone(&tiny_zone, ptr);
+    if (is_pointer_in_zone(memory_zones.tiny_zone, ptr))
+    {
+        free_in_zone(&memory_zones.tiny_zone, ptr);
         return;
     }
-
-    // Check if the pointer belongs to SMALL zone
-    if (is_pointer_in_zone(small_zone, ptr)) {
-        free_in_zone(&small_zone, ptr);
+    if (is_pointer_in_zone(memory_zones.small_zone, ptr))
+    {
+        free_in_zone(&memory_zones.small_zone, ptr);
         return;
     }
-
-    // Check if the pointer belongs to LARGE zone
-    if (is_pointer_in_zone(large_allocations, ptr)) {
-        free_in_zone(&large_allocations, ptr);
+    if (is_pointer_in_zone(memory_zones.large_allocations, ptr))
+    {
+        free_in_zone(&memory_zones.large_allocations, ptr);
         return;
     }
 }
