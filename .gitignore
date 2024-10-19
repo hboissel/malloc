@@ -3,3 +3,4 @@ libft_malloc*
 *.a
 *.so
 obj
+test_malloc

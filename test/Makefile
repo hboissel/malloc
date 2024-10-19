@@ -1,5 +1,5 @@
 # Name of the final executable
-NAME = test
+NAME = test_malloc
 
 # Source file(s)
 SRCS = main.c

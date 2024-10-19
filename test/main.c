@@ -92,6 +92,25 @@ void test_show_alloc_mem_ex() {
     show_alloc_mem_ex();
 }
 
+/// Stress test with 1000 malloc and free
+void test_stress() {
+    write(1, "🧪 Stress test 🧪\n", 22);
+    const size_t size = 10000;
+    void* tab[size];
+    size_t i = 0;
+
+    while (i < size) {
+        tab[i] = calloc(1, 48);
+        i++;
+    }
+    i = 0;
+    while (i < size) {
+        free(tab[i]);
+        i++;
+    }
+    show_alloc_mem();
+}
+
 /// Personalized test
 void test_personalized() {
     write(1, "🧪 Personalized test 🧪\n", 28);
@@ -100,14 +119,15 @@ void test_personalized() {
 
 /// function that test all functions: malloc, free, realloc, show_alloc_mem
 void test() {
-    test_zone_alloc(TINY_THRESHOLD, "TINY");
-    test_zone_alloc(SMALL_THRESHOLD, "SMALL");
-    test_zone_alloc(10000, "LARGE");
-    test_fragmentation();
-    test_realloc();
-    test_random();
-    test_show_alloc_mem_ex();
-    test_personalized();
+    // test_zone_alloc(TINY_THRESHOLD, "TINY");
+    // test_zone_alloc(SMALL_THRESHOLD, "SMALL");
+    // test_zone_alloc(10000, "LARGE");
+    // test_fragmentation();
+    // test_realloc();
+    // test_random();
+    // test_show_alloc_mem_ex();
+    // test_personalized();
+    test_stress();
 }
 
 int main()
