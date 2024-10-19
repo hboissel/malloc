@@ -37,8 +37,24 @@ char malloc_shrink_block(BlockMeta* block, size_t size) {
     return 1;
 }
 
+/// Function that check if the size of memory which is requested is valid
+/// regarding the system limits
+static int is_valid_size(size_t size)
+{
+    struct rlimit limit;
+    getrlimit(RLIMIT_AS, &limit);
+    if (size > (size_t)limit.rlim_cur)
+    {
+        return 0;
+    }
+    return 1;
+}
+
 // Initialize a new zone for TINY or SMALL allocations
 static MemoryZone* init_memory_zone(size_t zone_size, size_t block_size) {
+    if (!is_valid_size(zone_size)) {
+        return NULL;
+    }
     void* memory = mmap(NULL, zone_size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
     if (memory == MAP_FAILED) {
         return NULL;
@@ -95,7 +111,6 @@ static void* allocate_in_zone(MemoryZone** zone_head, size_t size, size_t zone_s
 }
 
 void* malloc(size_t size) {
-    // write(1, "malloc\n", 7);
     if (!size) {
         return NULL;
     }
@@ -105,7 +120,7 @@ void* malloc(size_t size) {
     } else if (size <= SMALL_THRESHOLD) {
         return allocate_in_zone(&memory_zones.small_zone, size, SMALL_ZONE_SIZE);
     } else {
-        size_t total_size = size + MEMORY_ZONE_SIZE + BLOCK_META_SIZE;
+        size_t total_size = ALIGN(size + MEMORY_ZONE_SIZE + BLOCK_META_SIZE);
         return allocate_in_zone(&memory_zones.large_allocations, size, total_size);
     }
 }
