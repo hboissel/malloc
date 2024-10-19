@@ -1,1 +1,5 @@
 libft_malloc*
+*.o
+*.a
+*.so
+obj
