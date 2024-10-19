@@ -20,6 +20,22 @@ static int is_pointer_in_zone(MemoryZone *zone, void *ptr)
     return 0;
 }
 
+/// Function that lock all the mutexes
+void malloc_lock_all_mutexes()
+{
+    pthread_mutex_lock(&memory_zone_mutex.tiny_mutex);
+    pthread_mutex_lock(&memory_zone_mutex.small_mutex);
+    pthread_mutex_lock(&memory_zone_mutex.large_mutex);
+}
+
+/// Function that unlock all the mutexes
+void malloc_unlock_all_mutexes()
+{
+    pthread_mutex_unlock(&memory_zone_mutex.tiny_mutex);
+    pthread_mutex_unlock(&memory_zone_mutex.small_mutex);
+    pthread_mutex_unlock(&memory_zone_mutex.large_mutex);
+}
+
 // Realloc implementation
 void* realloc(void* ptr, size_t size) {
     if (!ptr) {
@@ -30,6 +46,7 @@ void* realloc(void* ptr, size_t size) {
         return NULL;
     }
     size = ALIGN(size);
+    malloc_lock_all_mutexes();
     // Check if ptr belongs to a zone
     if (!is_pointer_in_zone(memory_zones.tiny_zone, ptr) && !is_pointer_in_zone(memory_zones.small_zone, ptr)
         && !is_pointer_in_zone(memory_zones.large_allocations, ptr)) {
@@ -38,6 +55,7 @@ void* realloc(void* ptr, size_t size) {
     BlockMeta* block = (BlockMeta*)ptr - 1;
     size_t current_size = block->size;
     if (size == current_size) {
+        malloc_unlock_all_mutexes();
         return ptr;
     }
     if (size < current_size) {
@@ -45,11 +63,14 @@ void* realloc(void* ptr, size_t size) {
         return ptr;
     }
     // Allocate a new block with the required size
+    malloc_unlock_all_mutexes();
     void* new_ptr = malloc(size);
+    malloc_lock_all_mutexes();
     if (!new_ptr) {
         return NULL;
     }
     ft_memcpy(new_ptr, ptr, current_size);
+    malloc_unlock_all_mutexes();
     free(ptr);
     return new_ptr;
 }

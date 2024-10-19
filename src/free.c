@@ -142,19 +142,28 @@ void free(void *ptr)
     {
         return;
     }
+    pthread_mutex_lock(&memory_zone_mutex.tiny_mutex);
     if (is_pointer_in_zone(memory_zones.tiny_zone, ptr))
     {
         free_in_zone(&memory_zones.tiny_zone, ptr);
+        pthread_mutex_unlock(&memory_zone_mutex.tiny_mutex);
         return;
     }
+    pthread_mutex_unlock(&memory_zone_mutex.tiny_mutex);
+    pthread_mutex_lock(&memory_zone_mutex.small_mutex);
     if (is_pointer_in_zone(memory_zones.small_zone, ptr))
     {
         free_in_zone(&memory_zones.small_zone, ptr);
+        pthread_mutex_unlock(&memory_zone_mutex.small_mutex);
         return;
     }
+    pthread_mutex_unlock(&memory_zone_mutex.small_mutex);
+    pthread_mutex_lock(&memory_zone_mutex.large_mutex);
     if (is_pointer_in_zone(memory_zones.large_allocations, ptr))
     {
         free_in_zone(&memory_zones.large_allocations, ptr);
+        pthread_mutex_unlock(&memory_zone_mutex.large_mutex);
         return;
     }
+    pthread_mutex_unlock(&memory_zone_mutex.large_mutex);
 }

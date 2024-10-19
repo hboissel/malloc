@@ -1,10 +1,11 @@
 #ifndef MALLOC_H
-#define MALLOC_H
+# define MALLOC_H
 
 # include "../libft/libft.h"
 
 # include <sys/mman.h>
 # include <sys/resource.h>
+# include <pthread.h>
 
 
 # define TINY_ZONE_SIZE (16 * sysconf(_SC_PAGESIZE))  // Size of a TINY zone
@@ -34,7 +35,14 @@ typedef struct MemoryZoneList {
     MemoryZone* large_allocations;
 } MemoryZoneList;
 
+typedef struct MemoryZoneMutex {
+    pthread_mutex_t tiny_mutex;
+    pthread_mutex_t small_mutex;
+    pthread_mutex_t large_mutex;
+} MemoryZoneMutex;
+
 extern struct MemoryZoneList memory_zones;
+extern struct MemoryZoneMutex memory_zone_mutex;
 
 # define BLOCK_META_SIZE sizeof(BlockMeta)
 # define MEMORY_ZONE_SIZE sizeof(MemoryZone)
@@ -48,5 +56,7 @@ void    show_alloc_mem();
 void    show_alloc_mem_ex();
 
 char malloc_shrink_block(BlockMeta* block, size_t size);
+void malloc_lock_all_mutexes();
+void malloc_unlock_all_mutexes();
 
 #endif

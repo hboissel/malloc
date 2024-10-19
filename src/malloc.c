@@ -6,6 +6,12 @@ MemoryZoneList memory_zones = {
     .large_allocations = NULL
 };
 
+MemoryZoneMutex memory_zone_mutex = {
+    .tiny_mutex = PTHREAD_MUTEX_INITIALIZER,
+    .small_mutex = PTHREAD_MUTEX_INITIALIZER,
+    .large_mutex = PTHREAD_MUTEX_INITIALIZER
+};
+
 static BlockMeta* find_free_block(MemoryZone* zone, size_t size) {
     BlockMeta* current = zone->free_list;
     while (current != NULL) {
@@ -33,6 +39,7 @@ char malloc_shrink_block(BlockMeta* block, size_t size) {
     block->size = size;
     block->next = new_block;
     block->free = 0;
+    malloc_unlock_all_mutexes();
     free(new_block + 1); // Free the new block to merge it with the next one
     return 1;
 }
@@ -111,16 +118,27 @@ static void* allocate_in_zone(MemoryZone** zone_head, size_t size, size_t zone_s
 }
 
 void* malloc(size_t size) {
+    void* ptr = NULL;
+
     if (!size) {
         return NULL;
     }
     size = ALIGN(size);
     if (size <= TINY_THRESHOLD) {
-        return allocate_in_zone(&memory_zones.tiny_zone, size, TINY_ZONE_SIZE);
+        pthread_mutex_lock(&memory_zone_mutex.tiny_mutex);
+        ptr = allocate_in_zone(&memory_zones.tiny_zone, size, TINY_ZONE_SIZE);
+        pthread_mutex_unlock(&memory_zone_mutex.tiny_mutex);
+        return ptr;
     } else if (size <= SMALL_THRESHOLD) {
-        return allocate_in_zone(&memory_zones.small_zone, size, SMALL_ZONE_SIZE);
+        pthread_mutex_lock(&memory_zone_mutex.small_mutex);
+        ptr = allocate_in_zone(&memory_zones.small_zone, size, SMALL_ZONE_SIZE);
+        pthread_mutex_unlock(&memory_zone_mutex.small_mutex);
+        return ptr;
     } else {
         size_t total_size = ALIGN(size + MEMORY_ZONE_SIZE + BLOCK_META_SIZE);
-        return allocate_in_zone(&memory_zones.large_allocations, size, total_size);
+        pthread_mutex_lock(&memory_zone_mutex.large_mutex);
+        ptr = allocate_in_zone(&memory_zones.large_allocations, size, total_size);
+        pthread_mutex_unlock(&memory_zone_mutex.large_mutex);
+        return ptr;
     }
 }
