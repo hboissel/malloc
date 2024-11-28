@@ -7,25 +7,25 @@
 # include <sys/resource.h>
 
 
-# define TINY_ZONE_SIZE (16 * sysconf(_SC_PAGESIZE))  // Size of a TINY zone
-# define SMALL_ZONE_SIZE (64 * sysconf(_SC_PAGESIZE)) // Size of a SMALL zone
-# define TINY_THRESHOLD 512              // Max size for TINY allocations
-# define SMALL_THRESHOLD 2048            // Max size for SMALL allocations
+# define TINY_ZONE_SIZE (16 * sysconf(_SC_PAGESIZE))
+# define SMALL_ZONE_SIZE (64 * sysconf(_SC_PAGESIZE))
+# define TINY_THRESHOLD 512
+# define SMALL_THRESHOLD 2048
 
-# define ALIGN(x) (((((x) - 1) >> 4) << 4) + 16) // Align the size to 16 bytes
+# define ALIGN(x) (((((x) - 1) >> 4) << 4) + 16) // 16 bytes align
 
 typedef struct BlockMeta {
-    size_t size;                       // Size of the block
-    char free;                         // Whether the block is free
-    struct BlockMeta* next;            // Next block in the list
-    struct BlockMeta* prev;            // Previous block in the list
+    size_t size;                      
+    char free;                        
+    struct BlockMeta* next;         
+    struct BlockMeta* prev;   
 } BlockMeta;
 
 typedef struct MemoryZone {
-    BlockMeta* free_list;              // List of free/used blocks
-    size_t zone_size;                  // Total size of the zone
-    struct MemoryZone* next;           // Pointer to the next zone
-    struct MemoryZone* prev;           // Pointer to the previous zone
+    BlockMeta* free_list;          
+    size_t zone_size;              
+    struct MemoryZone* next;        
+    struct MemoryZone* prev;          
 } MemoryZone;
 
 typedef struct MemoryZoneList {
