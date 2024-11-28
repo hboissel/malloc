@@ -4,3 +4,4 @@ libft_malloc*
 *.so
 obj
 test_malloc
+.vscode

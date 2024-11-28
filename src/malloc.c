@@ -1,4 +1,5 @@
 #include "malloc.h"
+#include <bits/mman-linux.h>
 
 MemoryZoneList memory_zones = {
     .tiny_zone = NULL,
@@ -55,7 +56,7 @@ static MemoryZone* init_memory_zone(size_t zone_size, size_t block_size) {
     if (!is_valid_size(zone_size)) {
         return NULL;
     }
-    void* memory = mmap(NULL, zone_size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
+    void* memory = mmap(NULL, zone_size, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
     if (memory == MAP_FAILED) {
         return NULL;
     }

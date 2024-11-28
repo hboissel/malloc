@@ -5,6 +5,7 @@
 
 # include <sys/mman.h>
 # include <sys/resource.h>
+# include <bits/mman-linux.h>
 
 
 # define TINY_ZONE_SIZE (16 * sysconf(_SC_PAGESIZE))
