@@ -1,21 +1,5 @@
 #include "malloc.h"
 
-// Helper function to find which zone the pointer belongs to
-// int is_pointer_in_zone(MemoryZone *zone, void *ptr)
-// {
-//     while (zone)
-//     {
-//         void *zone_start = (void *)(zone);
-//         void *zone_end = (void *)((char *)zone + zone->zone_size);
-//         if (ptr >= zone_start && ptr < zone_end)
-//         {
-//             return 1;
-//         }
-//         zone = zone->next;
-//     }
-//     return 0;
-// }
-
 /// Function that check if the pointer belongs to the zone and a block
 static int is_pointer_in_zone(MemoryZone *zone, void *ptr)
 {
