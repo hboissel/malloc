@@ -113,7 +113,7 @@ void show_alloc_mem()
 }
 
 /// Function to display a hexdump of a memory block
-void show_alloc_mem_ex()
+void show_alloc_mem_hex()
 {
     intro_print_zone(1);
 }

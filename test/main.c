@@ -48,15 +48,15 @@ void test_realloc() {
     write(1, "🧪 Realloc test 🧪\n", 23);
     void* ptr = malloc(128);
     ft_memcpy(ptr, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", 32);
-    show_alloc_mem_ex();
+    show_alloc_mem_hex();
     ptr = realloc(ptr, 256);
-    show_alloc_mem_ex();
+    show_alloc_mem_hex();
     ptr = realloc(ptr, 64);
-    show_alloc_mem_ex();
+    show_alloc_mem_hex();
     ptr = realloc(ptr, 65);
-    show_alloc_mem_ex();
+    show_alloc_mem_hex();
     ptr = realloc(ptr, 4);
-    show_alloc_mem_ex();
+    show_alloc_mem_hex();
     free(ptr);
     show_alloc_mem();
 }
@@ -79,17 +79,17 @@ void test_random() {
     show_alloc_mem();
 }
 
-/// Function that test show_alloc_mem_ex
-void test_show_alloc_mem_ex() {
-    write(1, "🧪 show_alloc_mem_ex test 🧪\n", 34);
+/// Function that test show_alloc_mem_hex
+void test_show_alloc_mem_hex() {
+    write(1, "🧪 show_alloc_mem_hex test 🧪\n", 34);
     char* ptr = malloc(128);
     ft_memcpy(ptr, "AAAAAAAAAAAAAAAA", 16);
     char* ptr2 = malloc(128);
     ft_memcpy(ptr2, "BBBBBBBBBBBBBBBB", 16);
-    show_alloc_mem_ex();
+    show_alloc_mem_hex();
     free(ptr);
     free(ptr2);
-    show_alloc_mem_ex();
+    show_alloc_mem_hex();
 }
 
 /// Stress test with 1000 malloc and free
@@ -119,14 +119,14 @@ void test_personalized() {
 
 /// function that test all functions: malloc, free, realloc, show_alloc_mem
 void test() {
-    // test_zone_alloc(TINY_THRESHOLD, "TINY");
-    // test_zone_alloc(SMALL_THRESHOLD, "SMALL");
-    // test_zone_alloc(10000, "LARGE");
-    // test_fragmentation();
-    // test_realloc();
-    // test_random();
-    // test_show_alloc_mem_ex();
-    // test_personalized();
+    test_zone_alloc(TINY_THRESHOLD, "TINY");
+    test_zone_alloc(SMALL_THRESHOLD, "SMALL");
+    test_zone_alloc(10000, "LARGE");
+    test_fragmentation();
+    test_realloc();
+    test_random();
+    test_show_alloc_mem_hex();
+    test_personalized();
     test_stress();
 }
 
