@@ -12,8 +12,7 @@ SRCS_B   = ft_lstnew_bonus.c ft_lstmap_bonus.c ft_lstiter_bonus.c ft_lstclear_bo
 		   ft_lstadd_back_bonus.c ft_lstlast_bonus.c ft_lstsize_bonus.c ft_lstadd_front_bonus.c
 OBJS     = $(SRCS:.c=.o)
 OBJS_B   = $(SRCS_B:.c=.o)
-CC       = cc
-CFLAGS   = -Wall -Werror -Wextra
+CFLAGS   = -Werror -Wextra -Wall -fPIC
 RM       = rm -f
 INC      = -I .
 

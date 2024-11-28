@@ -4,7 +4,6 @@ SRCS = main.c
 
 OBJS = $(SRCS:.c=.o)
 
-CC = gcc
 CFLAGS = -Wall -Wextra -Werror
 
 LDFLAGS = -L.. -Wl,-rpath=.. -lft_malloc

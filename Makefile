@@ -64,21 +64,27 @@ $(NAME) : $(OBJ)
 	@ln -sf $(NAME) $(LIB_NAME)
 	@ echo "\e[33m\e[1m\tMake\e[0m [🗿] : \e[1mDone ! ✅"
 
+test: $(NAME)
+	@ $(MAKE) -sC test
+	@ cd test && ./test_malloc
+
 clean :
-	@ make -sC $(LIBFT_PATH) clean
+	@ $(MAKE) -sC $(LIBFT_PATH) clean
+	@ $(MAKE) -sC test clean
 	@ rm -f $(OBJ)
 	@ rm -f $(OBJ:.o=.d)
 	@ rm -rf $(BIN_DIR) $(DBG_DIR)
 	@echo "\e[33m\e[1m\tMake\e[0m [🗿] : \e[1mRemove binary files .. 🧹"
 
 fclean : clean
-	@ make -sC $(LIBFT_PATH) fclean
+	@ $(MAKE) -sC $(LIBFT_PATH) fclean
+	@ $(MAKE) -sC test fclean
 	@ rm -f $(NAME)
 	@ rm -f $(LIB_NAME)
-	@echo "\e[33m\e[1m\tMake\e[0m [🗿] : \e[1mRemove executable .. 🗑️"
+	@ echo "\e[33m\e[1m\tMake\e[0m [🗿] : \e[1mRemove executable .. 🗑️"
 
 re : fclean all
 
 -include	${DEPS} ${DBG_DEPS}
 
-.PHONY: all clean fclean re debug
+.PHONY: all clean fclean re debug test
